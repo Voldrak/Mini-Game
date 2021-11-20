@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
 const canvas = document.querySelector(".gameCanvas");
-var ctx = canvas.getContext('2d');
+let ctx = canvas.getContext('2d');
 
 canvas.width = innerWidth
 canvas.height = innerHeight
