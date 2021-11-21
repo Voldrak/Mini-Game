@@ -1,12 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
 
 const canvas = document.querySelector(".gameCanvas");
-let ctx = canvas.getContext('2d');
+var ctx = canvas.getContext('2d');
 
 canvas.width = innerWidth
 canvas.height = innerHeight
 
-//Creazione del personaggio
+const scoreEL = document.querySelector("#scoreEl")
+const btn = document.querySelector('.btn')
+const gameOver = document.querySelector('.gameOver')
+const scoreText = document.querySelector('.scoreText')
+
+//Creazione dei personaggi/oggetti
 
 //Funzioni che determinano posizione x,y,raggio e colore
 
@@ -78,14 +83,59 @@ class Enemy{
     }
 }
 
+// Esplosione
+const friction = 0.97
+class Particle{
+    constructor(x,y, radius, color, velocity) {
+
+        this.x = x
+        this.y = y
+        this.radius = radius
+        this.color = color
+        this.velocity = velocity
+        this.alpha = 1
+    }
+
+    draw() {
+        ctx.save()
+        ctx.globalAlpha = this.alpha
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
+        ctx.fillStyle = this.color
+        ctx.fill()
+        ctx.restore()
+    }
+
+    update() {
+        this.draw()
+        this.velocity.x *= friction
+        this.velocity.y *= friction
+        this.x = this.x + this.velocity.x
+        this.y = this.y + this.velocity.y
+        this.alpha -= 0.01
+    }
+}
+
 //Iniziamo a dare i valori base al player
 const x = canvas.width /2
 const y = canvas.height /2
 
 
-const player = new Player(x, y, 30, 'blue')
-const projectiles = []
-const enemies = []
+let player = new Player(x, y, 10, 'white')
+let projectiles = []
+let enemies = []
+let particles = []
+
+//RESET GAME
+function init() {
+     player = new Player(x, y, 10, 'white')
+     projectiles = []
+     enemies = []
+     particles = []
+     score = 0
+     scoreEL.innerHTML = score
+     scoreText.innerHTML = score
+}
 
 
 //SPAWN NEMICI
@@ -106,7 +156,7 @@ function spawnEnmies() {
         
         }
 
-        const color = 'green'
+        const color = `hsl(${Math.random() * 360}, 50%, 50%)`
         
         const angle = Math.atan2(
         canvas.height / 2 - y,
@@ -123,10 +173,19 @@ function spawnEnmies() {
 }
 
 let animationId
+let score = 0
 function animate() {
     animationId = requestAnimationFrame(animate)
-    ctx.clearRect(0, 0,canvas.width, canvas.height)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'
+    ctx.fillRect(0, 0,canvas.width, canvas.height)
     player.draw()
+    particles.forEach((particle, index) => {
+        if(particle.alpha <= 0) {
+            particles.splice(index, 1)
+        } else {
+        particle.update()
+        }
+    })
     projectiles.forEach((projectile, index) => {
        projectile.update() 
 
@@ -148,21 +207,60 @@ function animate() {
 
         const dist = Math.hypot(player.x - enemy.x,
             player.y - enemy.y)
-// END GAME
-        if(dist - enemy.radius - player.radius < 1 ) {
-            cancelAnimationFrame(animationId)
+
+
+
+            // END GAME
+if(dist - enemy.radius - player.radius < 1 ) {
+    cancelAnimationFrame(animationId)
+    gameOver.style.display = 'flex'
+    scoreText.innerHTML = score
+}
+
+projectiles.forEach((projectile, projectileIndex) => {
+    const dist = Math.hypot(projectile.x - enemy.x,
+            projectile.y - enemy.y)
+
+
+
+            //QUANDO IL PROIETTILE TOCCA UN NEMICO
+    if(dist - enemy.radius - projectile.radius < 1 ) {
+
+        
+
+        // ESPLOSIONI
+    for (let i = 0; i < enemy.radius * 2; i++) {
+        particles.push(
+            new Particle(projectile.x, projectile.y, Math.random() * 2, enemy.color,
+            {   x: (Math.random() - 0.5) * (Math.random() * 5),
+                y: (Math.random() - 0.5) * (Math.random() * 5) 
+            })
+        )
+            
         }
+        if(enemy.radius -10 > 5) {
 
-        projectiles.forEach((projectile, projectileIndex) => {
-           const dist = Math.hypot(projectile.x - enemy.x,
-                 projectile.y - enemy.y)
+            // AUMENTA PUNTEGGIO
+        score += 100
+        scoreEL.innerHTML = score
 
-                 //Oggetto toccato
-            if(dist - enemy.radius - projectile.radius < 1 ) {
-                setTimeout(() => {
-                    enemies.splice(index, 1)
-                    projectiles.splice(projectileIndex, 1)
-                }, 0)
+            gsap.to(enemy, {
+                radius: enemy.radius - 10
+            })
+            setTimeout(() => {
+                projectiles.splice(projectileIndex, 1)
+            }, 0)   
+
+        } else {
+            score += 250
+        scoreEL.innerHTML = score
+
+            setTimeout(() => {
+                enemies.splice(index, 1)
+                projectiles.splice(projectileIndex, 1)
+            }, 0)   
+        }
+        
                 
 
             }
@@ -171,25 +269,31 @@ function animate() {
 }
 
 //Aziona proiettile
-window.addEventListener('click', (event) => {
-    console.log(projectiles);
+addEventListener('click', (event) => {
+    
     const angle = Math.atan2(
         event.clientY - canvas.height / 2,
          event.clientX - canvas.width / 2
          )
+         // Regolare velocità proiettili
     const velocity = {
-        x: Math.cos(angle) ,
-        y: Math.sin(angle)
+        x: Math.cos(angle) * 10,
+        y: Math.sin(angle) * 10
     }
 
 projectiles.push(new Projectile(
     canvas.width / 2,
-    canvas.height / 2, 5, 'red', velocity)
+    canvas.height / 2,
+     5, 'white', velocity)
     
      )
 })
 
+btn.addEventListener('click', () => {
+    init()
+    animate()
+    spawnEnmies()
+    gameOver.style.display = 'none'
+})
 
-animate()
-spawnEnmies()
 })

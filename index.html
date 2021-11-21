@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -7,15 +8,35 @@
     <title>Gioco</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-  <script src="js/script.js"></script>
-  
-        <canvas class="gameCanvas">
-            Your browser does not support canvas tag.
 
-        </canvas>
+<div class="score">
+    <span>Score:</span>
+    <span id="scoreEl">0</span>
+</div>
+    
+<div class="gameOver">
+ <div class="gameOText">
+    <h1 class="scoreText">0</h1>
+    <p>Punti</p>
+    <div>
+        <button class="btn">Start Game</button>
+    </div>
+ </div>
+</div>
+
+<canvas class="gameCanvas">
+        Your browser does not support canvas tag.
+
+    </canvas>
+
     
 
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.8.0/gsap.min.js"
+        integrity="sha512-eP6ippJojIKXKO8EPLtsUMS+/sAGHGo1UN/38swqZa1ypfcD4I0V/ac5G3VzaHfDaklFmQLEs51lhkkVaqg60Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="js/script.js"></script>
 </body>
+
 </html>
